@@ -13,6 +13,8 @@ hbs.registerPartials(path.join(__dirname, 'app_server', 'views', 'partials'));
 
 app.use('/', indexRouter);
 app.use('/travel', travelRouter);
+// Old HTML links also reach the dynamic trip listing.
+app.get('/travel.html', (req, res) => res.redirect('/travel'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 if (require.main === module) {
