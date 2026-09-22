@@ -16,7 +16,7 @@
   "dependencies": {
     "express": "^5.2.1",
     "hbs": "^4.3.0",
-    "mongoose": "^9.10.1",
+    "mongoose": "^6.13.8",
     "seedgoose": "^2.0.2"
   }
 }

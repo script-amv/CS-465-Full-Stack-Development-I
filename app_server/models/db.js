@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 
 const dbURI = process.env.DB_URI || 'mongodb://127.0.0.1:27017/travlr';
 
+mongoose.set('strictQuery', true);
+
 mongoose.connection.on('connected', () => console.log(`Mongoose connected to ${dbURI}`));
 mongoose.connection.on('error', error => console.error(`Mongoose connection error: ${error.message}`));
 mongoose.connection.on('disconnected', () => console.log('Mongoose disconnected'));
