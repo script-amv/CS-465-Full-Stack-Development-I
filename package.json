@@ -2,17 +2,21 @@
   "name": "travlr-getaways",
   "version": "1.0.0",
   "private": true,
-  "description": "Module One Express shell for Travlr Getaways",
+  "description": "Travlr Getaways full stack course project",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "test": "node --test"
+    "test": "node --test",
+    "seed": "seedgoose reseed trips",
+    "inspect-db": "node scripts/inspect-db.js"
   },
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
     "express": "^5.2.1",
-    "hbs": "^4.3.0"
+    "hbs": "^4.3.0",
+    "mongoose": "^9.10.1",
+    "seedgoose": "^2.0.2"
   }
 }

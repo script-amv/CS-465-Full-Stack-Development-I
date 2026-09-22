@@ -4,6 +4,8 @@ const { once } = require('node:events');
 const app = require('../app');
 const hbs = require('hbs');
 const trips = require('../data/trips.json');
+const Trip = require('../app_server/models/travlr');
+const { tripsList } = require('../app_api/controllers/trips');
 
 let server;
 let baseUrl;
@@ -76,4 +78,38 @@ test('the view handles extra mock trips, empty data, and HTML escaping', async (
   const empty = await render([]);
   assert.ok(empty.includes('No trips are available right now.'));
   assert.ok(!empty.includes('Gale Reef'));
+});
+
+test('trip seed data meets the Mongoose schema validation rules', async () => {
+  for (const tripData of trips) {
+    const trip = new Trip(tripData);
+    await trip.validate();
+  }
+
+  const invalidTrip = new Trip({ ...trips[0], code: 'invalid', perPerson: -1 });
+  await assert.rejects(invalidTrip.validate(), error => {
+    assert.ok(error.errors.code);
+    assert.ok(error.errors.perPerson);
+    return true;
+  });
+});
+
+test('the trip API controller returns Mongoose data as JSON', async () => {
+  const originalFind = Trip.find;
+  const response = {
+    statusCode: 0,
+    body: null,
+    status(code) { this.statusCode = code; return this; },
+    json(body) { this.body = body; return this; },
+  };
+
+  Trip.find = () => ({ sort: () => ({ lean: async () => trips }) });
+  try {
+    await tripsList({}, response);
+  } finally {
+    Trip.find = originalFind;
+  }
+
+  assert.equal(response.statusCode, 200);
+  assert.deepEqual(response.body, trips);
 });
