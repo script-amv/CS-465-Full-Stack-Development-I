@@ -1,0 +1,20 @@
+{{> header}}
+<div id="contents"><div class="portal-panel account-panel">
+  <h1>{{#if signup}}Sign Up{{else}}Login{{/if}}</h1>
+  {{#if message}}<p class="notice error" role="alert">{{message}}</p>{{/if}}
+  <form method="post" action="{{#if signup}}/signup{{else}}/login{{/if}}" class="portal-form">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <input type="hidden" name="returnUrl" value="{{returnUrl}}">
+    {{#if signup}}<label for="name">Name</label><input id="name" name="name" value="{{name}}" autocomplete="name" maxlength="100" required>{{/if}}
+    <label for="email">Email</label><input id="email" name="email" type="email" value="{{email}}" autocomplete="username" maxlength="254" required>
+    <label for="password">Password</label><input id="password" name="password" type="password" autocomplete="{{#if signup}}new-password{{else}}current-password{{/if}}" maxlength="128" {{#if signup}}minlength="12"{{/if}} required>
+    {{#if signup}}
+      <p class="form-help">Use 12 to 128 characters.</p>
+      <label for="confirmPassword">Re-type password</label><input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+      <label class="checkbox-label"><input name="agreement" type="checkbox" required> I agree to the <a href="/policy">Terms of Use and Privacy Policy</a>.</label>
+    {{/if}}
+    <button type="submit">{{#if signup}}Sign Up{{else}}Login{{/if}}</button>
+  </form>
+  {{#if signup}}<p>Already have an account? <a href="/login">Login</a>.</p>{{else}}<p><a href="/account-help">Forgot password?</a> · <a href="/signup">Create an account</a></p>{{/if}}
+</div></div>
+{{> footer}}

@@ -1,0 +1,24 @@
+<h1 class="page-heading">Customers</h1>
+<p class="text-muted">Maintain customer details. Deactivate an account to stop login while keeping its reservation history.</p>
+<div *ngIf="error" class="alert alert-danger" role="alert">{{ error }}</div>
+<div *ngIf="message" class="alert alert-success" role="status">{{ message }}</div>
+<div *ngIf="loading" class="alert alert-info">Loading customers...</div>
+<p *ngIf="!loading && !customers.length">No customer accounts yet.</p>
+<article *ngFor="let customer of customers" [attr.data-customer]="customer._id" class="card shadow-sm mb-3">
+  <div class="card-body">
+    <h2 class="h5">{{ customer.email }}</h2>
+    <form #customerForm="ngForm" (ngSubmit)="save(customer, customerForm)" class="row g-3">
+      <div class="col-md-5"><label [for]="'name-' + customer._id" class="form-label">Customer name</label>
+        <input [id]="'name-' + customer._id" name="name" class="form-control" [(ngModel)]="customer.name" required maxlength="100" [disabled]="busy"></div>
+      <div class="col-md-5"><label [for]="'email-' + customer._id" class="form-label">Customer email</label>
+        <input [id]="'email-' + customer._id" name="email" type="email" class="form-control" [(ngModel)]="customer.email" required email maxlength="254" [disabled]="busy"></div>
+      <div class="col-md-2 d-flex align-items-end"><div class="form-check">
+        <input [id]="'active-' + customer._id" type="checkbox" name="active" class="form-check-input" [(ngModel)]="customer.active" [disabled]="busy">
+        <label [for]="'active-' + customer._id" class="form-check-label">Account active</label></div></div>
+      <div class="col-12 d-flex gap-2">
+        <button type="submit" class="btn btn-primary" [disabled]="busy || customerForm.invalid">Save customer</button>
+        <button type="button" class="btn btn-outline-danger" [disabled]="busy" (click)="remove(customer)">Delete customer</button>
+      </div>
+    </form>
+  </div>
+</article>

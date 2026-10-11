@@ -5,6 +5,8 @@ const newman = require('newman');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const { mongoose } = require('../app_api/models/db');
 const Trip = require('../app_api/models/travlr');
+const User = require('../app_api/models/user');
+const Reservation = require('../app_api/models/reservation');
 const trips = require('../data/trips.json');
 const app = require('../app');
 
@@ -14,6 +16,11 @@ async function run() {
   try {
     await mongoose.connect(mongoServer.getUri('travlr'));
     await Trip.insertMany(trips);
+    await User.init();
+    await Reservation.init();
+    const administrator = new User({ name: 'Postman Administrator', email: 'admin@example.test', role: 'admin' });
+    await administrator.setPassword('MockPassword7!');
+    await administrator.save();
     if (await Trip.countDocuments() !== trips.length) throw new Error('Database seed count did not match trips.json.');
     server = app.listen(0, '127.0.0.1');
     await once(server, 'listening');
@@ -21,7 +28,7 @@ async function run() {
 
     await new Promise((resolve, reject) => {
       newman.run({
-        collection: path.join(__dirname, '..', 'postman', 'travlr-module7.postman_collection.json'),
+        collection: path.join(__dirname, '..', 'postman', 'travlr-project.postman_collection.json'),
         envVar: [{ key: 'baseUrl', value: baseUrl }],
         reporters: 'cli',
       }, (error, summary) => {

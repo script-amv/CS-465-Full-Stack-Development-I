@@ -89,6 +89,7 @@ test('missing, malformed, expired, forged, and deleted-user tokens cannot update
   assert.equal((await Trip.findOne({ code: 'GR001' })).name, 'Gale Reef');
 });
 test('authenticated CRUD changes both API data and the public Handlebars website', async () => {
+  await mongoose.connection.collection('users').updateOne({ email: user.email }, { $set: { role: 'admin' } });
   const login = await request('/api/login', 'POST', user);
   assert.equal(login.status, 200);
   const { token } = await login.json();

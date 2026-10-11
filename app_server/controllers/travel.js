@@ -1,5 +1,9 @@
 async function travel(req, res) {
-  const endpoint = `http://127.0.0.1:${req.socket.localPort}/api/trips`;
+  const query = new URLSearchParams();
+  for (const key of ['location', 'minPrice', 'maxPrice', 'category']) {
+    if (typeof req.query[key] === 'string' && req.query[key]) query.set(key, req.query[key]);
+  }
+  const endpoint = `http://127.0.0.1:${req.socket.localPort}/api/trips?${query}`;
 
   try {
     const response = await fetch(endpoint, {
@@ -12,8 +16,10 @@ async function travel(req, res) {
       ? 'No trips are available right now.'
       : response.ok ? null : 'Trips could not be loaded right now.';
 
-    if (!response.ok && response.status !== 404) res.status(503);
-    return res.render('travel', { title: 'Travel | Travlr Getaways', trips, message });
+    if (!response.ok && response.status !== 404) res.status(response.status === 400 ? 400 : 503);
+    const { decorate } = require('./reservations');
+    const categories = ['Beaches', 'Cruises', 'Mountains'].map(name => ({ name, selected: name === query.get('category') }));
+    return res.render('travel', { title: 'Travel | Travlr Getaways', trips: trips.map(decorate), message: response.status === 400 ? data.message : message, filters: Object.fromEntries(query), categories });
   } catch (error) {
     console.error('Unable to load trips for the travel page:', error);
     return res.status(503).render('travel', {
@@ -24,4 +30,13 @@ async function travel(req, res) {
   }
 }
 
-module.exports = { travel };
+async function detail(req, res) {
+  const { api } = require('./accounts');
+  const { decorate } = require('./reservations');
+  try {
+    const result = await api(req, '/trips/' + encodeURIComponent(req.params.tripCode));
+    if (!result.ok) return res.status(result.status).render('message', { heading: 'Trip unavailable', message: result.data.message });
+    return res.render('trip', { title: `${result.data.name} | Travlr Getaways`, trip: decorate(result.data) });
+  } catch { return res.status(503).render('message', { heading: 'Trip unavailable', message: 'Please try again shortly.' }); }
+}
+module.exports = { travel, detail };

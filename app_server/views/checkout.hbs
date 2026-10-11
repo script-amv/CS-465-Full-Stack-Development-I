@@ -1,0 +1,18 @@
+{{> header}}
+<div id="contents"><div class="portal-panel">
+  <h1>Checkout</h1>
+  <h2>{{trip.name}}</h2>
+  <p>{{trip.resort}} · {{trip.length}} · {{trip.dateLabel}}</p>
+  <p>${{trip.priceLabel}} per person × {{travellers}} travellers</p>
+  <p class="trip-price">Reservation total: ${{totalLabel}}</p>
+  <p>Your reservation will be saved with Travlr Getaways. No online payment is collected.</p>
+  <form method="post" action="/checkout" class="portal-form compact">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <input type="hidden" name="tripCode" value="{{trip.code}}">
+    <input type="hidden" name="travellers" value="{{travellers}}">
+    <input type="hidden" name="quote" value="{{quote}}">
+    <button type="submit">Confirm reservation</button>
+  </form>
+  <p><a href="/travel/{{trip.code}}">Change traveller count</a></p>
+</div></div>
+{{> footer}}

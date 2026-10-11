@@ -8,7 +8,9 @@ export function createTripForm(builder: FormBuilder, trip?: Trip) {
     length: [trip?.length ?? '', Validators.required],
     start: [trip?.start?.slice(0, 10) ?? '', Validators.required],
     resort: [trip?.resort ?? '', Validators.required],
-    perPerson: [trip?.perPerson ?? 0, [Validators.required, Validators.min(0)]],
+    location: [trip?.location ?? '', Validators.maxLength(100)],
+    category: [trip?.category ?? 'Beaches', Validators.required],
+    perPerson: [trip?.perPerson ?? 0, [Validators.required, Validators.min(0), Validators.max(1000000), Validators.pattern(/^\d+(?:\.\d{1,2})?$/)]],
     image: [trip?.image ?? '', Validators.required],
     description: [trip?.description ?? '', Validators.required],
   });

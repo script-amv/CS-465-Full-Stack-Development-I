@@ -7,6 +7,8 @@ const apiRouter = require('./app_api/routes/index');
 const { connectDatabase } = require('./app_api/models/db');
 const indexRouter = require('./app_server/routes/index');
 const travelRouter = require('./app_server/routes/travel');
+const accountRouter = require('./app_server/routes/accounts');
+const { sessionContext } = require('./app_server/middleware/session');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -19,6 +21,7 @@ hbs.registerPartials(path.join(__dirname, 'app_server', 'views', 'partials'));
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: false }));
 app.use(passport.initialize());
+app.use(sessionContext);
 app.use('/api', (req, res, next) => {
   if (adminOrigins.has(req.headers.origin)) {
     res.set('Access-Control-Allow-Origin', req.headers.origin);
@@ -32,6 +35,8 @@ app.use('/api', (req, res, next) => {
 
 app.use('/', indexRouter);
 app.use('/travel', travelRouter);
+app.use('/', accountRouter);
+app.get('/index.html', (req, res) => res.redirect('/'));
 // Old HTML links also reach the dynamic trip listing.
 app.get('/travel.html', (req, res) => res.redirect('/travel'));
 app.use('/api', apiRouter);

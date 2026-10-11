@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{title}}</title>
   <link rel="stylesheet" href="/css/style.css" type="text/css">
+  <link rel="stylesheet" href="/css/account.css" type="text/css">
 </head>
 <body>
   <div id="background">
@@ -24,4 +25,15 @@
             <li><a href="/contact.html">Contact</a></li>
           </ul>
         </div>
+        <nav class="account-nav" aria-label="Account navigation">
+          <a href="/reservations">Reservations</a>
+          <a href="/admin">Admin</a>
+          <a href="/travel">Checkout</a>
+          {{#if user}}
+            <span class="signed-in">{{user.name}}</span>
+            <form method="post" action="/logout"><input type="hidden" name="_csrf" value="{{csrfToken}}"><button type="submit">Log out</button></form>
+          {{else}}
+            <a href="/login">Login</a><a href="/signup">Sign Up</a>
+          {{/if}}
+        </nav>
       </div>

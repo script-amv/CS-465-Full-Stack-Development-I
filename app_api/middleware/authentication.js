@@ -14,12 +14,18 @@ async function authenticateJWT(req, res, next) {
   }
   try {
     const user = await User.findById(payload._id);
-    if (!user) return res.status(401).json({ message: 'User is no longer registered.' });
+    if (!user || !user.active) return res.status(401).json({ message: 'User is no longer active.' });
     req.auth = payload;
+    req.user = user;
     return next();
   } catch (error) {
     return res.status(503).json({ message: 'Authentication is unavailable.' });
   }
 }
 
-module.exports = { authenticateJWT };
+function requireAdmin(req, res, next) {
+  if (req.user?.role !== 'admin') return res.status(403).json({ message: 'Administrator access is required.' });
+  return next();
+}
+
+module.exports = { authenticateJWT, requireAdmin };

@@ -2,11 +2,15 @@
   <div class="container d-flex flex-wrap gap-2">
     <a class="navbar-brand fw-semibold" routerLink="/">Travlr Getaways Admin</a>
     <div class="d-flex flex-wrap align-items-center gap-2">
-      <a class="btn btn-outline-light btn-sm" routerLink="/">Trips</a>
-      <a *ngIf="auth.isLoggedIn()" class="btn btn-light btn-sm" routerLink="/add">Add trip</a>
+      <ng-container *ngIf="auth.isAdmin()">
+        <a class="btn btn-outline-light btn-sm" routerLink="/">Trips</a>
+        <a class="btn btn-outline-light btn-sm" routerLink="/customers">Customers</a>
+        <a class="btn btn-outline-light btn-sm" routerLink="/reservations">Reservations</a>
+        <a class="btn btn-light btn-sm" routerLink="/add">Add trip</a>
+      </ng-container>
       <a class="btn btn-outline-light btn-sm" [href]="publicUrl" target="_blank" rel="noopener">Public site</a>
-      <span *ngIf="auth.isLoggedIn()" class="text-white small">{{ auth.getCurrentUser()?.name }}</span>
-      <a *ngIf="!auth.isLoggedIn()" class="btn btn-light btn-sm" routerLink="/login">Log in</a>
+      <span *ngIf="auth.isAdmin()" class="text-white small">{{ auth.getCurrentUser()?.name }}</span>
+      <a *ngIf="!auth.isAdmin()" class="btn btn-light btn-sm" routerLink="/login">Log in</a>
       <button *ngIf="auth.isLoggedIn()" class="btn btn-light btn-sm" type="button" (click)="logout()">Log out</button>
     </div>
   </div>

@@ -4,12 +4,22 @@
           <div>
             <div class="body">
               <h1>Travel</h1>
+              <form method="get" action="/travel" class="portal-form search-form">
+                <div><label for="location">Search travel by location</label><input id="location" name="location" value="{{filters.location}}" maxlength="100" placeholder="Destination or resort"></div>
+                <div><label for="minPrice">Minimum price</label><input id="minPrice" name="minPrice" type="number" min="0" step="0.01" value="{{filters.minPrice}}"></div>
+                <div><label for="maxPrice">Maximum price</label><input id="maxPrice" name="maxPrice" type="number" min="0" step="0.01" value="{{filters.maxPrice}}"></div>
+                <div><label for="category">Category</label><select id="category" name="category"><option value="">All trips</option>{{#each categories}}<option {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}</select></div>
+                <button type="submit">Search</button><a href="/travel">Clear filters</a>
+              </form>
+              {{#if message}}<p class="notice" role="status">{{message}}</p>{{/if}}
               <ul id="sites">
                 {{#each trips}}
                 <li>
-                  <a href="/api/trips/{{this.code}}"><img src="/images/{{this.image}}" alt="{{this.name}}"></a>
-                  <h2><a href="/api/trips/{{this.code}}">{{this.name}}</a></h2>
+                  <a href="/travel/{{this.code}}"><img src="/images/{{this.image}}" alt="{{this.name}}"></a>
+                  <h2><a href="/travel/{{this.code}}">{{this.name}}</a></h2>
+                  <p class="trip-info">{{this.location}} · {{this.resort}}<br>{{this.length}} · {{this.dateLabel}}<br>${{this.priceLabel}} per person</p>
                   <p style="white-space: pre-line">{{this.description}}</p>
+                  <p class="trip-actions"><a class="action-link" href="/travel/{{this.code}}">View trip and book</a><a href="/api/trips/{{this.code}}">Trip data</a></p>
                 </li>
                 {{else}}
                 <li><p>{{#if message}}{{message}}{{else}}No trips are available right now.{{/if}}</p></li>

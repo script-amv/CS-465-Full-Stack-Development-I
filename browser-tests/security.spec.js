@@ -9,13 +9,13 @@ async function login(page) {
   await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
 }
 
-test('logged-out browsing hides CRUD and direct edit routes require login', async ({ page }) => {
+test('logged-out admin navigation requires login and hides CRUD', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Gale Reef', exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/login/);
   await expect(page.getByRole('link', { name: /Add.*trip/i })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Edit trip' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Delete', exact: true })).toHaveCount(0);
-  for (const route of ['/edit/GR001', '/add']) {
+  for (const route of ['/edit/GR001', '/add', '/customers', '/reservations']) {
     await page.goto(route);
     await expect(page).toHaveURL(/\/login\?returnUrl=/);
   }
@@ -33,7 +33,7 @@ test('wrong password stays on login and reports the error', async ({ page }) => 
 test('login enables CRUD, changes persist on the public site, and logout removes access', async ({ page, request }) => {
   await login(page);
   await expect(page.getByRole('link', { name: 'Edit trip' })).toHaveCount(4);
-  await page.screenshot({ path: path.join('..', 'module7-submission', 'screenshots', 'Logged In - CRUD Enabled.png'), fullPage: true });
+  await page.screenshot({ path: path.join('..', 'final-project-submission', 'screenshots', 'Logged In - CRUD Enabled.png'), fullPage: true });
   await page.getByRole('link', { name: 'Add a trip', exact: true }).click();
   await page.getByLabel('Trip code').fill('UI007');
   await page.getByLabel('Trip name').fill('Secure Browser Trip');
@@ -54,7 +54,7 @@ test('login enables CRUD, changes persist on the public site, and logout removes
   await expect(card).toContainText('Updated Secure Browser Trip');
   expect((await (await request.get('http://localhost:3000/api/trips/UI007')).json()).perPerson).toBe(977);
   expect(await (await request.get('http://localhost:3000/travel')).text()).toContain('Updated Secure Browser Trip');
-  await page.screenshot({ path: path.join('..', 'module7-submission', 'screenshots', 'Authenticated Trip Update.png'), fullPage: true });
+  await page.screenshot({ path: path.join('..', 'final-project-submission', 'screenshots', 'Authenticated Trip Update.png'), fullPage: true });
   page.once('dialog', dialog => dialog.accept());
   await card.getByRole('button', { name: 'Delete', exact: true }).click();
   await expect(card).toHaveCount(0);
@@ -64,7 +64,8 @@ test('login enables CRUD, changes persist on the public site, and logout removes
   await page.getByRole('button', { name: 'Log out' }).click();
   await expect(page.getByRole('link', { name: 'Edit trip' })).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem('travlr-token'))).toBeNull();
-  await page.screenshot({ path: path.join('..', 'module7-submission', 'screenshots', 'Logged Out - Read Only.png'), fullPage: true });
+  await expect(page).toHaveURL(/\/login/);
+  await page.screenshot({ path: path.join('..', 'final-project-submission', 'screenshots', 'Admin Login.png'), fullPage: true });
 });
 
 test('malformed and expired local tokens redirect safely to login', async ({ page }) => {
@@ -105,7 +106,7 @@ test('expiry noticed during interaction leaves the edit form before a delayed ti
 
 test('cancelled login cannot save a session or redirect after a delayed response', async ({ page }) => {
   let respond;
-  const payload = Buffer.from(JSON.stringify({ name: 'Delayed Admin', email: 'delayed@example.test', exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64url');
+  const payload = Buffer.from(JSON.stringify({ _id: '000000000000000000000001', role: 'admin', name: 'Delayed Admin', email: 'delayed@example.test', exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64url');
   await page.route('**/api/login', route => {
     respond = () => route.fulfill({ json: { token: `e30.${payload}.signature` } }).catch(() => {});
   });
@@ -115,7 +116,7 @@ test('cancelled login cannot save a session or redirect after a delayed response
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect.poll(() => Boolean(respond)).toBe(true);
   await page.getByRole('link', { name: 'Cancel', exact: true }).click();
-  await expect(page).toHaveURL('http://localhost:4200/');
+  await expect(page).toHaveURL(/\/login/);
   await respond();
   await expect(page.getByRole('link', { name: 'Log in', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Edit trip' })).toHaveCount(0);

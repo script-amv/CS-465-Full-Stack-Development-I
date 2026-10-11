@@ -6,10 +6,11 @@
       <span class="badge text-bg-secondary">{{ trip.code }}</span>
     </div>
     <p class="card-subtitle text-muted mb-2">{{ trip.resort }}</p>
+    <p *ngIf="trip.location" class="small text-muted mb-2">{{ trip.location }} · {{ trip.category }}</p>
     <p class="small mb-2">{{ trip.length }} · Starts {{ trip.start | date:'mediumDate' }}</p>
     <p class="fw-semibold mb-2">{{ trip.perPerson | currency:'USD':'symbol' }} per person</p>
     <p class="card-text flex-grow-1">{{ trip.description }}</p>
-    <div *ngIf="auth.isLoggedIn()" class="d-flex gap-2 mt-2">
+    <div *ngIf="auth.isAdmin()" class="d-flex gap-2 mt-2">
       <a class="btn btn-outline-primary btn-sm" [routerLink]="['/edit', trip.code]">Edit trip</a>
       <button class="btn btn-outline-danger btn-sm" type="button" (click)="deleteRequested.emit(trip.code)">Delete</button>
     </div>

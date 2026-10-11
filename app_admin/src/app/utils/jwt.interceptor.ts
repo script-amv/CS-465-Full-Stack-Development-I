@@ -10,12 +10,12 @@ export const jwtInterceptor: HttpInterceptorFn = (request, next) => {
   const router = inject(Router);
   const api = new URL(inject(TripDataService).baseUrl);
   const target = new URL(request.url, window.location.origin);
-  const isTripAPI = target.origin === api.origin &&
-    (target.pathname === `${api.pathname}/trips` || target.pathname.startsWith(`${api.pathname}/trips/`));
-  const authenticated = isTripAPI && auth.isLoggedIn();
+  const isProtectedAPI = target.origin === api.origin && target.pathname.startsWith(`${api.pathname}/`) &&
+    ![`${api.pathname}/login`, `${api.pathname}/register`].includes(target.pathname);
+  const authenticated = isProtectedAPI && auth.isLoggedIn();
   const outbound = authenticated ? request.clone({ setHeaders: { Authorization: `Bearer ${auth.getToken()}` } }) : request;
   return next(outbound).pipe(catchError((error: HttpErrorResponse) => {
-    if (isTripAPI && error.status === 401) {
+    if (isProtectedAPI && (error.status === 401 || error.status === 403)) {
       auth.logout();
       void router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
     }

@@ -1,0 +1,22 @@
+<h1 class="page-heading">Reservations</h1>
+<p class="text-muted">Review saved itineraries and change their status. Booking prices remain separate from current package prices.</p>
+<div *ngIf="error" class="alert alert-danger" role="alert">{{ error }}</div>
+<div *ngIf="message" class="alert alert-success" role="status">{{ message }}</div>
+<div *ngIf="loading" class="alert alert-info">Loading reservations...</div>
+<p *ngIf="!loading && !reservations.length">No reservations yet.</p>
+<article *ngFor="let reservation of reservations" [attr.data-reservation]="reservation._id" class="card shadow-sm mb-3">
+  <div class="card-body">
+    <h2 class="h5">{{ reservation.trip.name }} <span class="badge text-bg-secondary">{{ reservation.tripCode }}</span></h2>
+    <p>{{ reservation.customer?.name }} · {{ reservation.customer?.email }}</p>
+    <p>{{ reservation.trip.resort }} · {{ reservation.trip.length }} · Departure {{ reservation.trip.start | date:'mediumDate':'UTC' }}</p>
+    <p>{{ reservation.travellers }} travellers · Booked total: {{ reservation.total | currency:'USD':'symbol' }}</p>
+    <p class="small text-muted">Reference: {{ reservation._id }}</p>
+    <form (ngSubmit)="save(reservation)" class="d-flex flex-wrap align-items-center gap-3">
+      <label [for]="'status-' + reservation._id">Reservation status</label>
+      <select [id]="'status-' + reservation._id" name="status" class="form-select w-auto" [(ngModel)]="reservation.status" [disabled]="busy">
+        <option value="confirmed">Confirmed</option><option value="cancelled">Cancelled</option>
+      </select>
+      <button type="submit" class="btn btn-primary" [disabled]="busy">Save status</button>
+    </form>
+  </div>
+</article>

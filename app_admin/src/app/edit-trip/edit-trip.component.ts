@@ -35,6 +35,7 @@ export class EditTripComponent implements OnInit {
     this.tripData.getTrip(this.originalCode).subscribe({
       next: trip => {
         this.form.patchValue({ ...trip, start: trip.start.slice(0, 10) });
+        this.form.controls.code.disable();
         this.loading = false;
       },
       error: () => {

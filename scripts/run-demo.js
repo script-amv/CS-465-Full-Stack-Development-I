@@ -12,9 +12,12 @@ async function run() {
   await mongoose.connect(mongoServer.getUri('travlr'));
   await Trip.insertMany(trips);
   await User.init();
-  const user = new User({ name: 'Mock Administrator', email: 'admin@example.test' });
+  const user = new User({ name: 'Mock Administrator', email: 'admin@example.test', role: 'admin' });
   await user.setPassword('MockPassword7!');
   await user.save();
+  const customer = new User({ name: 'Demo Customer', email: 'customer@example.test', role: 'customer' });
+  await customer.setPassword('MockCustomer7!');
+  await customer.save();
   const server = app.listen(3000, () => {
     console.log('Travlr demo is running at http://localhost:3000');
     console.log('Run the Angular admin in another terminal with: cd app_admin && npm start');

@@ -1,7 +1,5 @@
-const path = require('path');
-
 const index = (req, res) => {
-  res.sendFile(path.join(__dirname, '..', '..', 'public', 'index.html'));
+  res.render('home', { title: 'Travlr Getaways' });
 };
 
 module.exports = {

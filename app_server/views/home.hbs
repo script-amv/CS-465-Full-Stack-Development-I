@@ -1,0 +1,11 @@
+{{> header}}
+<div id="contents">
+  <div class="portal-panel home-hero">
+    <img src="/images/sea-sound.jpg" alt="A beach destination" class="hero-image">
+    <h1>Find your next getaway</h1>
+    <p>Explore destinations, compare trip prices, and reserve your next journey with Travlr Getaways.</p>
+    <a class="action-link" href="/travel">Explore trips</a>
+    {{#unless user}}<a class="action-link secondary" href="/signup">Create an account</a>{{/unless}}
+  </div>
+</div>
+{{> footer}}

@@ -35,7 +35,7 @@ export class AuthenticationService {
 
   private expireSession(): void {
     this.logout();
-    if (!this.redirecting && /^\/(add|edit)(\/|$)/.test(this.router.url)) {
+    if (!this.redirecting && !this.router.url.startsWith('/login')) {
       this.redirecting = true;
       void this.router.navigate(['/login'], { queryParams: { returnUrl: this.router.url } })
         .finally(() => { this.redirecting = false; });
@@ -75,8 +75,10 @@ export class AuthenticationService {
 
   getCurrentUser(): User | null {
     const payload = this.payload();
-    return payload ? { name: payload.name, email: payload.email } : null;
+    return payload ? { name: payload.name, email: payload.email, role: payload.role } : null;
   }
+
+  isAdmin(): boolean { return this.isLoggedIn() && this.getCurrentUser()?.role === 'admin'; }
 
   login(user: User, password: string): Observable<AuthResponse> {
     return this.tripData.login(user, password).pipe(tap(response => this.saveToken(response.token)));

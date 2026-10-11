@@ -1,39 +1,58 @@
 # Travlr Getaways
 
-Module Seven Travlr Getaways customer website and Angular admin SPA with login authentication.
+Final CS 465 MEAN-stack application: an Express/MVC/Handlebars customer website, a MongoDB/Mongoose REST API, and an Angular 18/Bootstrap administrator SPA. Use Node 20.
 
-## Run the site
+## Quick local demo
 
-1. Use Node 20 and install dependencies with `npm install`. Run `npm run setup` to create a private `.env` file with a random JWT signing secret.
-2. Start MongoDB and load the sample trips with `npm run seed`. Change `DB_URI` in `.env` if your database uses a different address.
-3. Start the server with `npm start`.
-4. In a second terminal, run `cd app_admin`, `npm install`, and `npm start` with Node 20.
-5. Open `http://localhost:3000/travel` for the public site and `http://localhost:4200` for the admin SPA.
+In the project folder, run `npm ci` and `npm run demo`. In a second terminal, run `cd app_admin`, `npm ci`, and `npm start`. Keep both processes running.
 
-For a quick local demo without a separate MongoDB installation, run `npm run demo` in the project folder instead of steps 2 and 3. It starts a temporary seeded database and the Express server, with a mock user: email `admin@example.test`, password `MockPassword7!`. These credentials are only for the disposable demo database. The demo database is cleared when the process stops. Keep the Express and Angular terminals running at the same time. Visit `http://localhost:4200/login` to sign in.
+Open `http://localhost:3000` for customers and `http://localhost:4200/login` for administrators. The demo uses a disposable MongoDB seeded from `data/trips.json` with two mock accounts:
 
-For a persistent database, register a user through Postman with `POST http://localhost:3000/api/register` and a JSON or URL-encoded body containing `name`, `email`, and `password`. Passwords must contain 12 to 128 characters. Use that email and password in the Angular login form. Registration returns HTTP 201 with `{ "token": "..." }`; login at `POST /api/login` returns HTTP 200 with a token. Missing or malformed credentials return 400, incorrect credentials return 401, and duplicate emails return 409.
+- Administrator: `admin@example.test` / `MockPassword7!`
+- Customer: `customer@example.test` / `MockCustomer7!`
 
-The `/travel` controller requests trip JSON from the REST API, then passes it to the Handlebars view. The view uses `{{#each trips}}` to render each trip with shared header and footer. Old `/travel.html` links redirect to `/travel`.
+These accounts exist only in the temporary demo database. Stopping the demo removes that database. Customers can also sign up through `/signup`.
 
-The database module is at `app_api/models/db.js`. It connects through `DB_URI`, or uses `mongodb://127.0.0.1:27017/travlr` by default. The Trip schema is in `app_api/models/travlr.js` and requires a code, name, length, start date, resort, price, image, and description. The API supports `GET /api/trips`, `GET /api/trips/:tripCode`, `POST /api/trips`, `PUT /api/trips/:tripCode`, and `DELETE /api/trips/:tripCode`. The Angular trip data service uses these routes for listing, adding, editing, and deleting trips. Missing trips return 404, malformed codes return 400, invalid trip data returns 400, and duplicate codes return 409. Seed the `trips` collection with `npm run seed` after MongoDB is running. Run `npm run inspect-db` to print the collection count and records.
+## Persistent MongoDB setup
 
-## Module Seven security
+1. Run `npm ci` and `npm run setup`. Setup creates an ignored `.env` with a random JWT signing secret without overwriting an existing file.
+2. Start MongoDB. Set `DB_URI` in `.env` if it differs from `mongodb://127.0.0.1:27017/travlr`.
+3. For a new/test database, run `npm run seed`, then `npm run inspect-db`. Reseeding replaces the trip collection; do not run it against trip records you need to keep.
+4. Create an administrator separately. Set `ADMIN_PASSWORD` securely in the terminal environment to a password of 12–128 characters, then run `ADMIN_EMAIL=staff@example.test ADMIN_NAME="Travlr Administrator" npm run create-admin`. Clear the password environment variable afterward. The command refuses to change an existing account.
+5. Run `npm start` for Express. In a second terminal, run `cd app_admin`, `npm ci`, and `npm start` for Angular.
 
-The User model at `app_api/models/user.js` stores email, name, a random 16-byte salt, and a PBKDF2-SHA512 password hash. It uses 210,000 iterations rather than the guide's demonstration value of 1,000. Password comparison uses constant-time comparison. Passwords, hashes, and salts are not returned in API responses or stored in Angular.
+Do not include `.env`, real passwords, or database credentials in Git or archives. Server, seed, and inspection entrypoints read the same `.env`; connection logs redact MongoDB credentials. `.env.example` is guidance, not a shared secret.
 
-Passport's local strategy checks the database credentials. The server issues signed HS256 JSON Web Tokens that expire after one hour. Middleware validates the signature, expiration, and registered user before any POST, PUT, or DELETE trip action. Missing, altered, malformed, and expired tokens return JSON with HTTP 401. GET trip requests and the public Handlebars site remain open.
+## Customer website and administrator SPA
 
-Angular stores the token under `travlr-token` in browser local storage. Its authentication service handles login and logout, malformed or expired local tokens, and the signed-in user display. The navbar and trip cards show CRUD controls only when signed in. Guards protect direct navigation to add/edit forms. The JWT interceptor sends `Authorization: Bearer <token>` only to this application's trip API, and clears the session and returns to login if the server rejects a token. CORS allows the Authorization header from the two local Angular development origins.
+Public home and `/travel` use Express MVC controllers and HBS views with shared partials. The listing obtains live API JSON, renders an `each` loop, and supports location, minimum/maximum price, and category search. `/travel/:tripCode` shows package details. `/signup` and `/login` create/authenticate customer accounts. Checkout confirms a reservation with the agency without collecting payment. `/reservations` shows the customer's saved itineraries and allows cancellation.
 
-The course guide assumes that every registered user may manage trips. This implementation follows that single authentication layer; it does not implement administrator roles. Local storage is readable by browser scripts, so a production deployment would also need an authorization policy, HTTPS, and further session protection. Logout removes the browser token; an already copied token remains valid until its one-hour expiry.
+Reservations save a trip/date/price snapshot and traveller count. The server calculates totals from the stored price and assigns the authenticated owner. Package edits do not rewrite existing bookings. Customers cannot read or cancel another customer's reservation; duplicate confirmed bookings return 409.
 
-`.env` is ignored by Git and excluded from the submission archive. `.env.example` and `npm run setup` let another developer generate their own secret. Keep actual secrets private; no online token verifier is required.
+Checkout first obtains a signed ten-minute quote tied to the user, traveller count, and reviewed package fields. Confirming a changed or expired review returns 409 and requires checkout again. Trip codes cannot change after creation. Prices are finite USD amounts from $0 to $1,000,000 with up to two decimal places.
 
-The server, seed command, and database inspection command load the same `.env` configuration. MongoDB credentials are redacted from connection logs. Compatible dependency patches keep Mongoose on version 6 and override Handlebars to 4.7.10; the production dependency audit reports no vulnerabilities. Development test-tool dependencies still report advisories.
+The Angular site is admin-only, including its trip list and direct add/edit/customer/reservation routes. Reusable cards and fields support trip CRUD. Administrators manage customer names, emails, active status, and reservation status. Deactivation blocks existing tokens and new login. Customers with booking history cannot be deleted; trips with confirmed bookings cannot be deleted. Public registration cannot create administrators or change roles.
 
-## Tests
+## API and security
 
-Run `npm test` for server integration and authentication tests using a temporary MongoDB. Run `npm run test:postman` to execute `postman/travlr-module7.postman_collection.json` through Newman against another temporary database. The same collection can be imported into Postman; set `baseUrl` to the running Express server. It registers a unique mock email on each run, logs in, stores the JWT as a collection variable, and tests unauthorized writes, wrong credentials, altered tokens, and authenticated trip CRUD.
+The API is mounted at `/api`. Public routes are GET `/trips`, GET `/trips/:tripCode`, POST `/register`, and POST `/login`. Search filters are `location`, `minPrice`, `maxPrice`, and `category`; filtered no matches returns `[]`, while an unfiltered empty collection returns 404.
 
-Run `npm run test:browser` for Chrome browser checks of login, logout, add/update/delete, direct-route protection, malformed/expired local tokens, and rejected-token recovery. This command starts both demo servers on ports 3000 and 4200, which must be free. It requires installed Google Chrome and creates verification screenshots in the sibling `module7-submission/screenshots` folder. Run `npm run build` and `npm test -- --watch=false --browsers=ChromeHeadless` inside `app_admin` to build Angular and run its unit tests. Node 20 and Angular 18 are used for this course project.
+POST `/trips` and PUT/DELETE `/trips/:tripCode` require an active administrator. GET `/me` returns safe account details. GET `/customers` and PUT/DELETE `/customers/:customerId` are admin-only. POST `/reservations` and GET `/me/reservations` require login; GET `/reservations` lists all bookings for administrators. GET/PUT `/reservations/:reservationId` permit the owner or an admin, with owner updates limited to cancellation.
+
+Before POST `/reservations`, request GET `/trips/:tripCode/quote?travellers=2` with the customer's Bearer token. Submit its `quote` with `tripCode` and numeric `travellers`. The server rejects altered, wrong-owner, stale, or expired quotes rather than confirming unreviewed booking changes.
+
+User passwords use random salts and PBKDF2-SHA512 with 210,000 iterations and constant-time comparison. Hashes/salts are excluded from API responses. Passport verifies credentials, then the server issues signed HS256 JWTs lasting one hour. Protected requests verify signatures, expiry, and current active database accounts; admin access uses the current database role.
+
+Customer MVC forms use an HttpOnly SameSite=Lax token cookie and signed, session-bound CSRF tokens. Cookies are Secure in production. Angular uses local storage under `travlr-token`; its interceptor sends tokens only to this API, excluding login/register. Guards control navigation, but actual authorization is server-side. Rejected tokens clear the SPA session. Cancel unsubscribes pending login requests.
+
+Errors include 400 invalid input, 401 missing/invalid credentials, 403 insufficient permission, 404 missing/private records, 409 conflicts, and 500/503 database/service failures. Another customer's itinerary returns 404.
+
+This is a local course application, not a production deployment. Production needs HTTPS, request-rate controls, stronger session protection, monitoring, backups, and load testing. Logout does not revoke an already copied token. Automatic password-reset emails, payment processing, and airline integrations are not implemented.
+
+## Verification
+
+Run `npm test` for integration tests with temporary databases. Test files run sequentially to avoid competing MongoDB startup timeouts. Run `npm run test:postman` for `postman/travlr-project.postman_collection.json` using Newman and another temporary database. It can be imported into Postman: set `baseUrl`, `adminEmail`, and `adminPassword` for the running app. It creates unique mock customer accounts and tests trip CRUD, role errors, search, reservation ownership/persistence/status, and customer management. Use a test database because it creates and changes records.
+
+Run `npm run test:browser` to start both demo servers and test Chrome interfaces. Ports 3000/4200 must be free and Google Chrome installed. Screenshots go to the sibling `final-project-submission/screenshots` folder. Tests add, edit, verify, and remove a temporary FT009 tour dated February 20, 2027.
+
+Inside `app_admin`, run `npm run build` and `npm test -- --watch=false --browsers=ChromeHeadless`. The final build completes with bundle-size and Bootstrap selector warnings. Earlier module branches remain separate course snapshots.

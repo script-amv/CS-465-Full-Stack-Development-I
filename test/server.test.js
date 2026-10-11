@@ -27,6 +27,7 @@ test.before(async () => {
     body: JSON.stringify({ name: 'Integration Admin', email: 'integration@example.test', password: 'IntegrationPassword7!' }),
   });
   assert.equal(registered.status, 201);
+  await mongoose.connection.collection('users').updateOne({ email: 'integration@example.test' }, { $set: { role: 'admin' } });
   authHeaders = { 'Content-Type': 'application/json', Authorization: `Bearer ${(await registered.json()).token}` };
 });
 

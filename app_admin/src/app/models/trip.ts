@@ -5,6 +5,8 @@ export interface Trip {
   length: string;
   start: string;
   resort: string;
+  location?: string;
+  category?: string;
   perPerson: number;
   image: string;
   description: string;

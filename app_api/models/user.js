@@ -9,6 +9,8 @@ const iterations = 210000;
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, trim: true, lowercase: true, maxlength: 254, match: /^[^\s@]+@[^\s@]+\.[^\s@]+$/ },
   name: { type: String, required: true, trim: true, maxlength: 100 },
+  role: { type: String, enum: ['customer', 'admin'], default: 'customer', required: true },
+  active: { type: Boolean, default: true },
   hash: { type: String, required: true, select: false },
   salt: { type: String, required: true, select: false },
 });
@@ -24,7 +26,7 @@ userSchema.methods.validPassword = async function(password) {
   return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
 };
 userSchema.methods.generateJWT = function() {
-  return jwt.sign({ _id: String(this._id), email: this.email, name: this.name }, jwtSecret(), { algorithm: 'HS256', expiresIn: '1h' });
+  return jwt.sign({ _id: String(this._id), email: this.email, name: this.name, role: this.role }, jwtSecret(), { algorithm: 'HS256', expiresIn: '1h' });
 };
 
 module.exports = mongoose.model('users', userSchema);

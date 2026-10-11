@@ -1,0 +1,16 @@
+{{> header}}
+<div id="contents"><div class="portal-panel">
+  <h1>My Reservations</h1>
+  {{#if booked}}<p class="notice" role="status">Your reservation is confirmed. Your itinerary is saved below.</p>{{/if}}
+  {{#each reservations}}
+  <article class="itinerary">
+    <h2>{{trip.name}}</h2>
+    <p>{{trip.location}} · {{trip.resort}} · {{trip.length}}</p>
+    <p>Departure: {{trip.dateLabel}}</p>
+    <p>{{travellers}} travellers · Total: ${{totalLabel}} · Status: <strong>{{status}}</strong></p>
+    <p class="form-help">Reservation reference: {{_id}}</p>
+    {{#if confirmed}}<form method="post" action="/reservations/{{_id}}/cancel"><input type="hidden" name="_csrf" value="{{../csrfToken}}"><button type="submit" class="secondary">Cancel reservation</button></form>{{/if}}
+  </article>
+  {{else}}<p>No reservations yet. <a href="/travel">Explore our trips</a> to plan your getaway.</p>{{/each}}
+</div></div>
+{{> footer}}
