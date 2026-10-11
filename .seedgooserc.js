@@ -1,3 +1,5 @@
+require('./app_api/config/environment');
+
 module.exports = {
   modelBaseDirectory: 'app_api/models',
   models: 'travlr.js',

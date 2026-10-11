@@ -1,4 +1,4 @@
-const { connectDatabase, gracefulShutdown } = require('../app_api/models/db');
+const { connectDatabase, gracefulShutdown, redactDatabaseCredentials } = require('../app_api/models/db');
 const Trip = require('../app_api/models/travlr');
 
 async function inspectDatabase() {
@@ -9,7 +9,7 @@ async function inspectDatabase() {
 }
 
 inspectDatabase().catch(async error => {
-  console.error(`Database inspection failed: ${error.message}`);
+  console.error(`Database inspection failed: ${redactDatabaseCredentials(error.message)}`);
   await gracefulShutdown('inspection failed');
   process.exitCode = 1;
 });

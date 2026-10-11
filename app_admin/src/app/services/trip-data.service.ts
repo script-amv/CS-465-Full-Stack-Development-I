@@ -2,12 +2,23 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Trip } from '../models/trip';
+import { User } from '../models/user';
+import { AuthResponse } from '../models/auth-response';
 
 @Injectable({ providedIn: 'root' })
 export class TripDataService {
-  private readonly tripsUrl = `http://${window.location.hostname}:3000/api/trips`;
+  readonly baseUrl = `http://${window.location.hostname}:3000/api`;
+  private readonly tripsUrl = `${this.baseUrl}/trips`;
 
   constructor(private readonly http: HttpClient) {}
+
+  login(user: User, password: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.baseUrl}/login`, { email: user.email, password });
+  }
+
+  register(user: User, password: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.baseUrl}/register`, { ...user, password });
+  }
 
   getTrips(): Observable<Trip[]> {
     return this.http.get<Trip[]>(this.tripsUrl);

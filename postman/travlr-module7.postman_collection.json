@@ -1,0 +1,490 @@
+{
+  "info": {
+    "name": "Travlr Module Seven Security",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "userEmail",
+      "value": "postman@example.test"
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "if (pm.info.requestName === 'Public collection' || !pm.collectionVariables.get('runEmail')) pm.collectionVariables.set('runEmail', 'postman-' + Date.now() + '@example.test');",
+          "pm.variables.set('userEmail', pm.collectionVariables.get('runEmail'));"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Public collection",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/trips",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Public collection: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Trip collection is JSON', () => pm.expect(pm.response.json()).to.be.an('array'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Deny anonymous POST",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/trips",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"code\":\"PM007\",\"name\":\"Protected Postman Trip\",\"length\":\"7 days / 6 nights\",\"start\":\"2026-12-12\",\"resort\":\"Gale Reef\",\"perPerson\":899,\"image\":\"reef3.jpg\",\"description\":\"Mock data for authenticated Module Seven testing.\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Deny anonymous POST: HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Deny anonymous PUT",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/trips/GR001",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Unauthorized\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Deny anonymous PUT: HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Deny anonymous DELETE",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/trips/GR001",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Deny anonymous DELETE: HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Register mock user",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/register",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Postman Administrator\",\"email\":\"{{userEmail}}\",\"password\":\"PostmanPassword7!\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Register mock user: HTTP 201', () => pm.response.to.have.status(201));",
+              "pm.test('JWT only, no password fields', () => { pm.expect(Object.keys(pm.response.json())).to.eql(['token']); pm.expect(pm.response.json().token.split('.')).to.have.lengthOf(3); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject duplicate registration",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/register",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Postman Administrator\",\"email\":\"{{userEmail}}\",\"password\":\"PostmanPassword7!\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Reject duplicate registration: HTTP 409', () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject missing credentials",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/login",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Reject missing credentials: HTTP 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject incorrect password",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/login",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"{{userEmail}}\",\"password\":\"IncorrectPassword7!\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Reject incorrect password: HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login mock user",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/login",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\":\"{{userEmail}}\",\"password\":\"PostmanPassword7!\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Login mock user: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Login returns JWT', () => pm.expect(pm.response.json().token).to.be.a('string'));",
+              "pm.collectionVariables.set('token', pm.response.json().token);",
+              "const parts = pm.response.json().token.split('.'); parts[2] = (parts[2][0] === 'a' ? 'b' : 'a') + parts[2].slice(1); pm.collectionVariables.set('alteredToken', parts.join('.'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Add authenticated trip",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/trips",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"code\":\"PM007\",\"name\":\"Protected Postman Trip\",\"length\":\"7 days / 6 nights\",\"start\":\"2026-12-12\",\"resort\":\"Gale Reef\",\"perPerson\":899,\"image\":\"reef3.jpg\",\"description\":\"Mock data for authenticated Module Seven testing.\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Add authenticated trip: HTTP 201', () => pm.response.to.have.status(201));",
+              "pm.test('Added trip is JSON', () => pm.expect(pm.response.json().code).to.eql('PM007'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Read authenticated trip",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/trips/PM007",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Read authenticated trip: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('New trip persisted', () => pm.expect(pm.response.json().name).to.eql('Protected Postman Trip'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reject altered token",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/trips/PM007",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{alteredToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Should Not Save\"}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Reject altered token: HTTP 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Confirm denied write had no effect",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/trips/PM007",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Confirm denied write had no effect: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Name unchanged after invalid token', () => pm.expect(pm.response.json().name).to.eql('Protected Postman Trip'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Update authenticated trip",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/trips/PM007",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Updated Protected Postman Trip\",\"perPerson\":999}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Update authenticated trip: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Updated JSON values', () => { const trip = pm.response.json(); pm.expect(trip.name).to.eql('Updated Protected Postman Trip'); pm.expect(trip.perPerson).to.eql(999); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Confirm update in database",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/trips/PM007",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Confirm update in database: HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Update persisted', () => pm.expect(pm.response.json().perPerson).to.eql(999));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delete authenticated trip",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/trips/PM007",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Delete authenticated trip: HTTP 204', () => pm.response.to.have.status(204));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Confirm deletion",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/trips/PM007",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ]
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Confirm deletion: HTTP 404', () => pm.response.to.have.status(404));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

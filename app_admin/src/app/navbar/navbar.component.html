@@ -1,0 +1,13 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+  <div class="container d-flex flex-wrap gap-2">
+    <a class="navbar-brand fw-semibold" routerLink="/">Travlr Getaways Admin</a>
+    <div class="d-flex flex-wrap align-items-center gap-2">
+      <a class="btn btn-outline-light btn-sm" routerLink="/">Trips</a>
+      <a *ngIf="auth.isLoggedIn()" class="btn btn-light btn-sm" routerLink="/add">Add trip</a>
+      <a class="btn btn-outline-light btn-sm" [href]="publicUrl" target="_blank" rel="noopener">Public site</a>
+      <span *ngIf="auth.isLoggedIn()" class="text-white small">{{ auth.getCurrentUser()?.name }}</span>
+      <a *ngIf="!auth.isLoggedIn()" class="btn btn-light btn-sm" routerLink="/login">Log in</a>
+      <button *ngIf="auth.isLoggedIn()" class="btn btn-light btn-sm" type="button" (click)="logout()">Log out</button>
+    </div>
+  </div>
+</nav>

@@ -1,4 +1,5 @@
 const { once } = require('node:events');
+process.env.JWT_SECRET = require('node:crypto').randomBytes(48).toString('hex');
 const path = require('node:path');
 const newman = require('newman');
 const { MongoMemoryServer } = require('mongodb-memory-server');
@@ -20,7 +21,7 @@ async function run() {
 
     await new Promise((resolve, reject) => {
       newman.run({
-        collection: path.join(__dirname, '..', 'postman', 'travlr-module6.postman_collection.json'),
+        collection: path.join(__dirname, '..', 'postman', 'travlr-module7.postman_collection.json'),
         envVar: [{ key: 'baseUrl', value: baseUrl }],
         reporters: 'cli',
       }, (error, summary) => {

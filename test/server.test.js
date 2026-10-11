@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { once } = require('node:events');
+process.env.JWT_SECRET = require('node:crypto').randomBytes(48).toString('hex');
 const app = require('../app');
 const hbs = require('hbs');
 const { MongoMemoryServer } = require('mongodb-memory-server');
@@ -11,6 +12,7 @@ const Trip = require('../app_api/models/travlr');
 let server;
 let baseUrl;
 let mongoServer;
+let authHeaders;
 
 test.before(async () => {
   mongoServer = await MongoMemoryServer.create();
@@ -20,6 +22,12 @@ test.before(async () => {
   await once(server, 'listening');
   const { port } = server.address();
   baseUrl = `http://127.0.0.1:${port}`;
+  const registered = await fetch(`${baseUrl}/api/register`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'Integration Admin', email: 'integration@example.test', password: 'IntegrationPassword7!' }),
+  });
+  assert.equal(registered.status, 201);
+  authHeaders = { 'Content-Type': 'application/json', Authorization: `Bearer ${(await registered.json()).token}` };
 });
 
 test.after(async () => {
@@ -185,7 +193,7 @@ test('POST, PUT, and DELETE trips update the database, API, and public page', as
   try {
     const created = await fetch(`${baseUrl}/api/trips`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders,
       body: JSON.stringify(newTrip),
     });
     assert.equal(created.status, 201);
@@ -195,21 +203,21 @@ test('POST, PUT, and DELETE trips update the database, API, and public page', as
 
     const duplicate = await fetch(`${baseUrl}/api/trips`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders,
       body: JSON.stringify(newTrip),
     });
     assert.equal(duplicate.status, 409);
 
     const invalid = await fetch(`${baseUrl}/api/trips`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders,
       body: JSON.stringify({ ...newTrip, code: 'BAD', perPerson: -1 }),
     });
     assert.equal(invalid.status, 400);
 
     const updated = await fetch(`${baseUrl}/api/trips/${code}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders,
       body: JSON.stringify({ ...newTrip, name: 'Updated Travlr Trip', perPerson: 899 }),
     });
     assert.equal(updated.status, 200);
@@ -219,7 +227,7 @@ test('POST, PUT, and DELETE trips update the database, API, and public page', as
     assert.match(updatedPage, /Updated Travlr Trip/);
     assert.doesNotMatch(updatedPage, /New Travlr Trip/);
 
-    const deleted = await fetch(`${baseUrl}/api/trips/${code}`, { method: 'DELETE' });
+    const deleted = await fetch(`${baseUrl}/api/trips/${code}`, { method: 'DELETE', headers: authHeaders });
     assert.equal(deleted.status, 204);
     assert.equal((await fetch(`${baseUrl}/api/trips/${code}`)).status, 404);
     assert.doesNotMatch(await (await fetch(`${baseUrl}/travel`)).text(), /Updated Travlr Trip/);
@@ -229,8 +237,8 @@ test('POST, PUT, and DELETE trips update the database, API, and public page', as
 });
 
 test('write routes reject invalid and missing trip codes', async () => {
-  assert.equal((await fetch(`${baseUrl}/api/trips/invalid`, { method: 'PUT' })).status, 400);
-  assert.equal((await fetch(`${baseUrl}/api/trips/ZZ999`, { method: 'PUT' })).status, 404);
-  assert.equal((await fetch(`${baseUrl}/api/trips/invalid`, { method: 'DELETE' })).status, 400);
-  assert.equal((await fetch(`${baseUrl}/api/trips/ZZ999`, { method: 'DELETE' })).status, 404);
+  assert.equal((await fetch(`${baseUrl}/api/trips/invalid`, { method: 'PUT', headers: authHeaders })).status, 400);
+  assert.equal((await fetch(`${baseUrl}/api/trips/ZZ999`, { method: 'PUT', headers: authHeaders })).status, 404);
+  assert.equal((await fetch(`${baseUrl}/api/trips/invalid`, { method: 'DELETE', headers: authHeaders })).status, 400);
+  assert.equal((await fetch(`${baseUrl}/api/trips/ZZ999`, { method: 'DELETE', headers: authHeaders })).status, 404);
 });

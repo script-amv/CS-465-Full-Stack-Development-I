@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { Trip } from '../models/trip';
 import { TripDataService } from '../services/trip-data.service';
 import { TripCardComponent } from '../trip-card/trip-card.component';
+import { AuthenticationService } from '../services/authentication.service';
 
 @Component({
   selector: 'app-trip-listing',
@@ -18,7 +19,7 @@ export class TripListingComponent implements OnInit {
   loading = true;
   error = '';
 
-  constructor(private readonly tripData: TripDataService) {}
+  constructor(private readonly tripData: TripDataService, public readonly auth: AuthenticationService) {}
 
   ngOnInit(): void {
     this.loadTrips();

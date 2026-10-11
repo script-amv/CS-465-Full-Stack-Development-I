@@ -7,7 +7,9 @@
   "scripts": {
     "start": "node app.js",
     "demo": "node scripts/run-demo.js",
-    "test": "node --test",
+    "setup": "node scripts/setup-env.js",
+    "test": "node --test test/*.test.js",
+    "test:browser": "playwright test",
     "test:postman": "node scripts/run-postman-tests.js",
     "seed": "seedgoose reseed trips",
     "inspect-db": "node scripts/inspect-db.js"
@@ -15,13 +17,21 @@
   "engines": {
     "node": ">=20"
   },
+  "overrides": {
+    "handlebars": "4.7.10"
+  },
   "dependencies": {
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "hbs": "^4.3.0",
-    "mongoose": "^6.13.8",
+    "hbs": "^4.3.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^6.13.11",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
     "seedgoose": "^2.0.2"
   },
   "devDependencies": {
+    "@playwright/test": "1.56",
     "mongodb-memory-server": "^10.4.3",
     "newman": "^6.2.2"
   }
