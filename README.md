@@ -49,6 +49,8 @@ Errors include 400 invalid input, 401 missing/invalid credentials, 403 insuffici
 
 This is a local course application, not a production deployment. Production needs HTTPS, request-rate controls, stronger session protection, monitoring, backups, and load testing. Logout does not revoke an already copied token. Automatic password-reset emails, payment processing, and airline integrations are not implemented.
 
+Dependency audit: server production dependencies reported zero advisories. The required Angular 18 production dependency set reported eight advisories (four high, four moderate), with fixes requiring newer Angular major versions. The full development dependency audit also reports advisories, including two critical findings in the Angular toolchain. These packages are retained for the course's Angular 18 requirement; public deployment requires a separately tested dependency upgrade. Do not expose the demo or Angular development server publicly.
+
 ## Verification
 
 Run `npm test` for integration tests with temporary databases. Test files run sequentially to avoid competing MongoDB startup timeouts. Run `npm run test:postman` for `postman/travlr-project.postman_collection.json` using Newman and another temporary database. It can be imported into Postman: set `baseUrl`, `adminEmail`, and `adminPassword` for the running app. It creates unique mock customer accounts and tests trip CRUD, role errors, search, reservation ownership/persistence/status, and customer management. Use a test database because it creates and changes records.
