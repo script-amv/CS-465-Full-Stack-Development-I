@@ -2,6 +2,32 @@
 
 Final CS 465 MEAN-stack application: an Express/MVC/Handlebars customer website, a MongoDB/Mongoose REST API, and an Angular 18/Bootstrap administrator SPA. Use Node 20.
 
+CS 465 Portfolio Reflection
+
+Working on Travlr Getaways helped me see how the browser, server, and database work together. The project grew from static pages into a customer website and an administrator application that share the same data.
+
+Architecture
+
+The first customer pages used static HTML, so their content was fixed. The Express website later used MVC routes, controllers, and Handlebars templates to render trip data as HTML on the server. JavaScript handles the server logic and API requests. The Angular admin SPA uses TypeScript, which compiles to JavaScript, and updates browser components without loading a whole new page for every action. Both interfaces use the same Express API, but they render their pages in different places.
+
+MongoDB was used because it is part of the MEAN stack and stores trips, users, and reservations as documents. This fits the objects passed between the JavaScript server and the frontend. Mongoose schemas keep fields such as trip codes, dates, and prices consistent. One database also lets both websites use the same current package information.
+
+Functionality
+
+JSON is a data format, while JavaScript is a programming language that runs instructions. JSON can hold objects, arrays, strings, numbers, and other simple values, but it does not run functions. The API returns trip records as JSON. Express passes that data to HBS templates, while Angular services pass it to components. JSON also provided the original mock trip data for seeding MongoDB.
+
+During the project, the static trip page was changed to an HBS loop. Shared header and footer partials reduced repeated HTML. Database access was separated into app_api, while app_server kept the customer routes and views. In Angular, TripCard displays each package and TripFields supplies the fields for both add and edit forms. Reusing these parts keeps the interface consistent and makes changes easier because the same fix can help more than one page.
+
+Testing
+
+An endpoint is an API address, such as /api/trips or /api/trips/GR001. The HTTP method tells the server what action to take: GET reads data, POST creates it, PUT updates it, and DELETE removes it. Postman tests checked responses, status codes, and whether changes stayed in the database. Browser tests also checked that an admin update appeared in the trip cards and customer website.
+
+Security added more cases to test. Protected requests needed a valid Bearer token, so testing the trip data alone was not enough. Checks included wrong passwords, expired or changed tokens, and customer attempts to use admin endpoints. Missing or invalid authentication returns 401, while an authenticated user without the required permission receives 403. Hiding an edit button is not enough; the server must also check permission. Tests checked that rejected requests did not change stored data.
+
+Reflection
+
+This course gave me a clearer understanding of full stack development and helped me prepare for software development work. I developed skills in Express MVC, HBS, Angular components and services, MongoDB schemas, REST APIs, authentication, and Git branches. The project also gave me practice testing problems across more than one layer and explaining the design in the SDD. I now have a working project to show in my portfolio. I still need more practice with Angular and security, but I feel more confident connecting the pieces of a web application.
+
 ## Quick local demo
 
 In the project folder, run `npm ci` and `npm run demo`. In a second terminal, run `cd app_admin`, `npm ci`, and `npm start`. Keep both processes running.
